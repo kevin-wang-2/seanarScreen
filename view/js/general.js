@@ -5,7 +5,8 @@ const {ipcRenderer} = require("electron");
 
 module.exports = (document) => {
     $(document).ready(() => {
-        let curSonar = new PPI($("canvas")[0]),
+        let maxRadius = Math.min(window.innerWidth, window.innerHeight) - 20;
+        let curSonar = new PPI($("canvas")[0], maxRadius),
             originalSpeed = curSonar.scanSpeed;
 
         ipcRenderer.on("setTickRate", function(ev, arg) {
@@ -22,6 +23,9 @@ module.exports = (document) => {
         });
         ipcRenderer.on("replay", function(ev, arg) {
             curSonar.mode(1, arg);
+        });
+        ipcRenderer.on("loadColorMap", function(ev, arg) {
+            curSonar.loadColorMap(arg);
         })
     });
 };

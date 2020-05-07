@@ -9,7 +9,7 @@ const scanLineCnt = 7200,
     scanPerAngle = 18;
 
 class PPI {
-    constructor(canvas, graphSize = 500) {
+    constructor(canvas, graphSize = 800) {
         this.context = new Context(canvas, graphSize);
         this.center = [this.context.windowSize / 2, this.context.windowSize / 2];
 
@@ -46,13 +46,13 @@ class PPI {
 
         // 开启重绘线程
         this.drawFrame();
-        this.redrawThread = new Clock(1000);
+        this.redrawThread = new Clock(50);
         this.redrawThread.run((timePassed) => {
             this.update(timePassed);
         });
 
         this.curFile = new SonarFile();
-        this.scanThread = new Clock(100);
+        this.scanThread = new Clock(50);
         this.scanThread.run(() => {
             if(this.mode === 1) {
                 if(this.curFile.fd) {
@@ -71,9 +71,10 @@ class PPI {
         ctx.arc(this.center[0], this.center[1],
             this.scanRadius,
             0, 2 * Math.PI);
-        //ctx.moveTo(this.center[0], this.center[1]);
-        //ctx.lineTo(this.scanRadius * Math.cos(-this.scanAngle * Math.PI / 180) + this.center[0],
-        //    this.scanRadius * Math.sin(-this.scanAngle * Math.PI / 180) + this.center[1]);
+        ctx.moveTo(this.center[0], this.center[1]);
+        ctx.lineTo(this.scanRadius * Math.cos(-Math.PI / 2 - this.scanAngle * Math.PI / 180) + this.center[0],
+            this.scanRadius * Math.sin(-Math.PI / 2 - this.scanAngle * Math.PI / 180) + this.center[1]);
+        ctx.strokeStyle = "white";
         ctx.stroke();
     }
 
@@ -102,6 +103,7 @@ class PPI {
             this.events.emit("error", err.message);
             throw err;
         }
+        if(!res) return;
 /*
         // PPI要进行插值, 先扫描插值数据
         for(let i = 0; i < res.length; i++) {
@@ -120,7 +122,7 @@ class PPI {
 */
         this._last_buf = res.data;
         this._last_angle = res.header.m_nAngle;
-        this.scanAngle = res.header.m_nAngle;
+        this.scanAngle = res.header.m_nAngle*0.45;
 
         setTimeout(() => {
             let dA = res.header.m_nAngle*0.45;
@@ -196,6 +198,12 @@ class PPI {
             }
             this.scanThread.restart();
         }
+    }
+
+    loadColorMap(fn) {
+        ColorMap.fromFile(fn).then((cm) => {
+            this.colorMap = cm;
+        });
     }
 }
 

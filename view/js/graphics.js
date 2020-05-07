@@ -1,3 +1,6 @@
+let {scaleData} = require("./sonarScan");
+let fs = require("fs");
+
 function assert(statement) {
     if (!statement) throw Error("Assert Error");
 }
@@ -39,10 +42,6 @@ Array.prototype.toUint8ClampedArray = function () {
     return ret;
 };
 
-Array.toUint8ClampedArray = function (arr) {
-
-};
-
 
 /**
  * 255级灰度
@@ -51,13 +50,48 @@ class ColorMap {
     constructor(map) {
         if (map) { // 现成色表, 以ImageData的数组格式加载
             this.colorMap = [];
-            for (let i = 0; i < map.length; i += 4) {
-                this.colorMap[i] = [
-                    map[i],
-                    map[i + 1],
-                    map[i + 2],
-                    255
+            if(map.length === 256) { // Matlab导出的灰度图, 需要插值
+                for (let i = 0; i < map.length - 3; i += 4) {
+                    this.colorMap[i] = [
+                        map[i],
+                        map[i + 1],
+                        map[i + 2],
+                        255
+                    ];
+                    this.colorMap[i + 1] = [
+                        Math.floor((3 * map[i] + map[i + 4]) / 4),
+                        Math.floor((3 * map[i + 1] + map[i + 5]) / 4),
+                        Math.floor((3 * map[i + 2] + map[i + 6]) / 4),
+                        255
+                    ];
+                    this.colorMap[i + 2] = [
+                        Math.floor((2 * map[i] + 2 * map[i + 4]) / 4),
+                        Math.floor((2 * map[i + 1] + 2 * map[i + 5]) / 4),
+                        Math.floor((2 * map[i + 2] + 2 * map[i + 6]) / 4),
+                        255
+                    ];
+                    this.colorMap[i + 3] = [
+                        Math.floor((map[i] + 3 * map[i + 4]) / 4),
+                        Math.floor((map[i + 1] + 3 * map[i + 5]) / 4),
+                        Math.floor((map[i + 2] + 3 * map[i + 6]) / 4),
+                        255
+                    ];
+                }
+                this.colorMap[255] = [
+                    map[252],
+                    map[253],
+                    map[254],
+                    map[255]
                 ]
+            } else {
+                for(let i = 0; i < 256; i++) {
+                    this.colorMap[i] = [
+                        map[i * 3],
+                        map[i * 3 + 1],
+                        map[i * 3 + 2],
+                        255
+                    ];
+                }
             }
         } else { // 生成标准灰度色表
             this.colorMap = [];
@@ -73,16 +107,22 @@ class ColorMap {
      */
     static async fromFile(file) {
         return new Promise((resolve) => {
-            let CMFile = new Image();
-            CMFile.src = file;
-            CMFile.onload = () => {
-                let tempCanvas = document.createElement("canvas");
-                tempCanvas.width = CMFile.width;
-                tempCanvas.height = CMFile.height;
-                let ctx = tempCanvas.getContext("2d");
-                ctx.drawImage(CMFile, 0, 0);
-                let imgData = ctx.getImageData(0, 0, 1, 255);
-                resolve(new ColorMap(imgData.data));
+            if(!file) {
+                resolve(new ColorMap());
+            } else if(file.substr(file.lastIndexOf(".")) === ".bin") {
+                resolve(new ColorMap(fs.readFileSync(file).toJSON().data));
+            } else {
+                let CMFile = new Image();
+                CMFile.src = file;
+                CMFile.onload = () => {
+                    let tempCanvas = document.createElement("canvas");
+                    tempCanvas.width = CMFile.width;
+                    tempCanvas.height = CMFile.height;
+                    let ctx = tempCanvas.getContext("2d");
+                    ctx.drawImage(CMFile, 0, 0);
+                    let imgData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    resolve(new ColorMap(imgData.data));
+                }
             }
         })
     }
