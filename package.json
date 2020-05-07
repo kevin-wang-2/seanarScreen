@@ -1,0 +1,11 @@
+{
+  "name": "seanarscreen",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "latest"
+  }
+}
