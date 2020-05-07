@@ -149,13 +149,15 @@ class ColorMap {
         }
 
         // 由于要使用蒙版, 重写转换过程, 为了性能直接写入Uint8ClampedArray
-        let pixelArray = new Uint8ClampedArray(grayScale.length * 4);
+        let pixelArray = new Uint8ClampedArray(w * w * 4);
         grayScale.forEach((item, cnt) => {
-            let newColor = this.colorMap[item];
-            pixelArray[cnt * 4] = newColor[0];
-            pixelArray[cnt * 4 + 1] = newColor[1];
-            pixelArray[cnt * 4 + 2] = newColor[2];
-            pixelArray[cnt * 4 + 3] = Math.floor(mask[cnt] * 255);
+            if(cnt <= w * w) {
+                let newColor = this.colorMap[item];
+                pixelArray[cnt * 4] = newColor[0];
+                pixelArray[cnt * 4 + 1] = newColor[1];
+                pixelArray[cnt * 4 + 2] = newColor[2];
+                pixelArray[cnt * 4 + 3] = Math.floor(mask[cnt] * 255);
+            }
         });
 
         let imageData = new ImageData(pixelArray, w, h);
@@ -297,15 +299,26 @@ class Clock {
     constructor(targetTickRate) {
         this.tickRate = targetTickRate;
         this.prevTS = new Date().getTime();
+        this.start = false;
+        this.tpause = false;
     }
 
     run(cb) {
-        this.interval = setInterval(() => {
-            let curTS = new Date().getTime(),
-                prevTS = this.prevTS;
-            this.prevTS = curTS;
-            cb(curTS - prevTS);
-        }, 1000 / this.tickRate);
+        if(this.tickRate <= 1000) {
+            this.interval = setInterval(() => {
+                let curTS = new Date().getTime(),
+                    prevTS = this.prevTS;
+                this.prevTS = curTS;
+                cb(curTS - prevTS);
+            }, 1000 / this.tickRate);
+        } else {
+            (async () => {
+                while(this.start) {
+                    if(this.tpause) continue;
+                    cb();
+                }
+            })();
+        }
         this.cb = cb;
     }
 
@@ -315,6 +328,24 @@ class Clock {
             let curTS = new Date().getTime(),
                 prevTS = this.prevTS;
             this.cb(curTS - prevTS);
+        } else if(this.start) {
+            this.start = false;
+        }
+    }
+
+    pause() {
+        if(this.interval) {
+            clearInterval(this.interval);
+        } else if(this.start) {
+            this.tpause = true;
+        }
+    }
+
+    restart() {
+        if(this.interval) {
+            this.run(this.cb);
+        } else if(this.start) {
+                this.tpause = false;
         }
     }
 

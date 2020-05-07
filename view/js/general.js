@@ -13,12 +13,15 @@ module.exports = (document) => {
         });
         ipcRenderer.on("speed", function(ev, arg) {
             if(arg === 1) {
-                curSonar.scanSpeed *= 2;
+                curSonar.replaySpeed *= 2;
             } else if(arg === 0) {
-                curSonar.scanSpeed = originalSpeed;
+                curSonar.replaySpeed = 1;
             } else if(arg === -1) {
-                curSonar.scanSpeed /= 2;
+                curSonar.replaySpeed /= 2;
             }
+        });
+        ipcRenderer.on("replay", function(ev, arg) {
+            curSonar.mode(1, arg);
         })
     });
 };

@@ -40,10 +40,11 @@ let template = [
                 dialog.showOpenDialog({
                     title: "打开声呐回放文件",
                     filters: [
-                        {name: "标准声呐回放文件", extensions: ["123"]}
+                        {name: "标准声呐回放文件", extensions: ["P62"]}
                         ]
                 }).then((fn) => {
-                    console.log(fn);
+                    if(!fn.canceled)
+                        mainWindow.webContents.send("replay", fn.filePaths[0]);
                 });
             }
         }, {
