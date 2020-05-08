@@ -140,6 +140,21 @@ class PPI {
     }
 
     /**
+     * 获取下位机信息后进行扫描
+     * @param data
+     */
+    recieveSonarData(data) {
+        if(this.smode === 1) return; // 当前处于回放模式, 不进行显示
+
+        // TODO: 处理minimum range
+
+        let dA = data.header.m_nAngle*0.45;
+        this.scan(dA, data.data, data.length);
+
+        // TODO: 将数据写入回放文件
+    }
+
+    /**
      * 从当前回放文件中进行一帧回放
      */
     replaySonarFile() {
@@ -154,6 +169,8 @@ class PPI {
             throw err;
         }
         if(!res) return;
+
+        // TODO: 处理minimum range
 /*
         // PPI要进行插值, 先扫描插值数据
         for(let i = 0; i < res.length; i++) {

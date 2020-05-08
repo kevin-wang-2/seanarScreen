@@ -37,6 +37,7 @@ module.exports = (document) => {
             }
             paused = !paused;
         });
+
         /**
          * 用户设置相关事件
          */
@@ -58,5 +59,12 @@ module.exports = (document) => {
         ipcRenderer.on("toggleFlag", function() {
             curSonar.flag = !curSonar.flag;
         });
+
+        /**
+         * 下位机事件
+         */
+        ipcRenderer.on("receiveSonarData", function(ev, arg) {
+            curSonar.recieveSonarData(data);
+        })
     });
 };

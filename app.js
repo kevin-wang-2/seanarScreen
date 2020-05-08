@@ -1,8 +1,9 @@
 const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut} = require('electron');
 const path = require('path');
-const {setRange, setFreq, setGain, freeze} = require("./local/sonarControl");
+const {Sonar} = require("./local/sonarControl");
 
-let mainWindow, menu;
+let mainWindow, menu,
+    sonar = new Sonar("192.168.0.7");
 
 function createWindow() {
     menu = Menu.buildFromTemplate(template);
@@ -107,73 +108,73 @@ let template = [
                         label: "1m",
                         type: "radio",
                         click: () => {
-                            setRange(1);
+                            sonar.setRange(1);
                         }
                     }, {
                         label: "2m",
                         type: "radio",
                         click: () => {
-                            setRange(2);
+                            sonar.setRange(2);
                         }
                     }, {
                         label: "3m",
                         type: "radio",
                         click: () => {
-                            setRange(3);
+                            sonar.setRange(3);
                         }
                     }, {
                         label: "4m",
                         type: "radio",
                         click: () => {
-                            setRange(4);
+                            sonar.setRange(4);
                         }
                     }, {
                         label: "5m",
                         type: "radio",
                         click: () => {
-                            setRange(5);
+                            sonar.setRange(5);
                         }
                     }, {
                         label: "6m",
                         type: "radio",
                         click: () => {
-                            setRange(6);
+                            sonar.setRange(6);
                         }
                     }, {
                         label: "7m",
                         type: "radio",
                         click: () => {
-                            setRange(7);
+                            sonar.setRange(7);
                         }
                     }, {
                         label: "8m",
                         type: "radio",
                         click: () => {
-                            setRange(8);
+                            sonar.setRange(8);
                         }
                     }, {
                         label: "9m",
                         type: "radio",
                         click: () => {
-                            setRange(9);
+                            sonar.setRange(9);
                         }
                     }, {
                         label: "10m",
                         type: "radio",
                         click: () => {
-                            setRange(10);
+                            sonar.setRange(10);
                         }
                     }, {
                         label: "15m",
                         type: "radio",
                         click: () => {
-                            setRange(15);
+                            sonar.setRange(15);
                         }
                     }, {
                         label: "20m",
                         type: "radio",
                         click: () => {
-                            setRange(20);
+                            sonar.setRange(20);
                         }
                     }
                 ]
@@ -184,19 +185,19 @@ let template = [
                         label: "自动",
                         type: "radio",
                         click: () => {
-                            setFreq(0);
+                            sonar.setFreq(0);
                         }
                     }, {
                         label: "低频",
                         type: "radio",
                         click: () => {
-                            setFreq(1);
+                            sonar.setFreq(1);
                         }
                     }, {
                         label: "高频",
                         type: "radio",
                         click: () => {
-                            setFreq(2);
+                            sonar.setFreq(2);
                         }
                     }
                 ]
@@ -207,61 +208,61 @@ let template = [
                         label: "10%",
                         type: "radio",
                         click: () => {
-                            setGain(10);
+                            sonar.setGain(4);
                         }
                     }, {
                         label: "20%",
                         type: "radio",
                         click: () => {
-                            setGain(20);
+                            sonar.setGain(8);
                         }
                     }, {
                         label: "30%",
                         type: "radio",
                         click: () => {
-                            setGain(30);
+                            sonar.setGain(12);
                         }
                     }, {
                         label: "40%",
                         type: "radio",
                         click: () => {
-                            setGain(40);
+                            sonar.setGain(16);
                         }
                     }, {
                         label: "50%",
                         type: "radio",
                         click: () => {
-                            setGain(50);
+                            sonar.setGain(20);
                         }
                     }, {
                         label: "60%",
                         type: "radio",
                         click: () => {
-                            setGain(60);
+                            sonar.setGain(24);
                         }
                     }, {
                         label: "70%",
                         type: "radio",
                         click: () => {
-                            setGain(70);
+                            sonar.setGain(28);
                         }
                     }, {
                         label: "80%",
                         type: "radio",
                         click: () => {
-                            setGain(80);
+                            sonar.setGain(32);
                         }
                     }, {
                         label: "90%",
                         type: "radio",
                         click: () => {
-                            setGain(90);
+                            sonar.setGain(36);
                         }
                     }, {
                         label: "100%",
                         type: "radio",
                         click: () => {
-                            setGain(100);
+                            sonar.setGain(40);
                         }
                     }
                 ]
@@ -284,7 +285,9 @@ let template = [
             }, {
                 label: "冻结",
                 type: "checkbox",
-                click: freeze
+                click: () => {
+                    sonar.freeze();
+                }
             }
         ]
     }, {
@@ -548,6 +551,10 @@ app.on('ready', function() {
         } else {
             menu.getMenuItemById("flagOn").checked = true;
         }
+    });
+
+    sonar.registerRecieveFn((res) => {
+        mainWindow.webContents.send("receiveSonarData", res)
     })
 });
 
@@ -558,5 +565,4 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
     if (mainWindow === null) createWindow()
 });
-
 
