@@ -14,10 +14,12 @@ class PPI {
         this.center = [this.context.windowSize / 2, this.context.windowSize / 2];
 
         this.headDown = true;
+        this.grid = true;
+        this.flag = true;
 
         this.scanAngle = 0;
-        this.scanSpeed = 90;
         this.scanRadius = graphSize / 2;
+        this.scanRange = 5;
 
         this.replaySpeed = 1;
 
@@ -54,7 +56,7 @@ class PPI {
         this.curFile = new SonarFile();
         this.scanThread = new Clock(50);
         this.scanThread.run(() => {
-            if(this.mode === 1) {
+            if(this.smode === 1) {
                 if(this.curFile.fd) {
                     if(this.replaySpeed > 1)
                         for(let i = 0; i < this.replaySpeed; i++) this.replaySonarFile();
@@ -67,15 +69,63 @@ class PPI {
     }
 
     drawFrame() {
+        let angle = this.scanAngle;
+        if(!this.headDown) angle = -angle;
         let ctx = this.context.ctx;
+        /**
+         * 绘制线类元素, 包括外圈, 扫描线, 栅格
+         */
+        ctx.beginPath();
         ctx.arc(this.center[0], this.center[1],
             this.scanRadius,
             0, 2 * Math.PI);
-        ctx.moveTo(this.center[0], this.center[1]);
-        ctx.lineTo(this.scanRadius * Math.cos(-Math.PI / 2 - this.scanAngle * Math.PI / 180) + this.center[0],
-            this.scanRadius * Math.sin(-Math.PI / 2 - this.scanAngle * Math.PI / 180) + this.center[1]);
+        if(this.flag) {
+            ctx.moveTo(this.center[0], this.center[1]);
+            ctx.lineTo(this.scanRadius * Math.cos(-Math.PI / 2 - angle * Math.PI / 180) + this.center[0],
+                this.scanRadius * Math.sin(-Math.PI / 2 - angle * Math.PI / 180) + this.center[1]);
+        }
+        if(this.grid) {
+            this.drawGrid(ctx);
+        }
         ctx.strokeStyle = "white";
         ctx.stroke();
+        /**
+         * 绘制块元素, 包括扫描标志
+         */
+        if(this.flag) {
+            ctx.beginPath();
+            let radian = -Math.PI / 2 - angle * Math.PI / 180,
+                startX = this.scanRadius * Math.cos(radian) + this.center[0],
+                startY = this.scanRadius * Math.sin(radian) + this.center[1];
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX + 10 * Math.cos(-Math.PI / 6 + radian), startY + 10 * Math.sin(-Math.PI / 6 + radian));
+            ctx.lineTo(startX + 10 * Math.cos(Math.PI / 6 + radian), startY + 10 * Math.sin(Math.PI / 6 + radian));
+            ctx.closePath();
+            ctx.fillStyle = "black";
+            ctx.fill();
+        }
+    }
+
+    /**
+     * 由于网格较为复杂, 单独将它抽出
+     */
+    drawGrid(ctx) {
+        // 首先画出极线
+        ctx.moveTo(this.center[0] - this.scanRadius, this.center[1]);
+        ctx.lineTo(this.center[0] + this.scanRadius, this.center[1]);
+        ctx.moveTo(this.center[0], this.center[1] - this.scanRadius);
+        ctx.lineTo(this.center[0], this.center[1] + this.scanRadius);
+        ctx.font = "18px bold 黑体";
+        ctx.textBaseline = "bottom";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "white";
+        for(let i = 0; i < 5; i++) {
+            ctx.arc(this.center[0], this.center[1],
+                this.scanRadius * i / 5,
+                0, 2 * Math.PI);
+            if(i !== 0)
+                ctx.fillText((this.scanRange * i / 5).toString(), this.center[0] + this.scanRadius * i / 5, this.center[1]);
+        }
     }
 
     update(timePassed) {
@@ -123,10 +173,11 @@ class PPI {
         this._last_buf = res.data;
         this._last_angle = res.header.m_nAngle;
         this.scanAngle = res.header.m_nAngle*0.45;
+        this.scanRange = res.header.ucRange;
 
         setTimeout(() => {
             let dA = res.header.m_nAngle*0.45;
-            this.scan(dA, res.data);
+            this.scan(dA, res.data, res.length);
         }, 2.5)
     }
 
@@ -134,10 +185,10 @@ class PPI {
      * 生成声呐扫描图像
      * @param angle: 扫描线所在角度(扫描扇中心角), 单位为度
      * @param buffer: 声呐数据
+     * @param len: buffer的有效长度
      * @param step: 扫描步距角，以度为单位
      */
-    scan(angle, buffer, step = 1) {
-
+    scan(angle, buffer, len, step = 1) {
         // 使角度范围保持在0到360之间
         while(angle >= 360) angle -= 360;
         if(this.headDown) {
@@ -150,7 +201,7 @@ class PPI {
 
         if(idx < 0) idx += scanLineCnt; // 使位置始终为正值
 
-        let displayBuffer = scaleData(buffer, this.scanRadius);
+        let displayBuffer = scaleData(buffer, len,  this.scanRadius);
 
         for(let i = 0; i < scans; i++) {
             let x1 = this.scanRadius,
@@ -182,22 +233,20 @@ class PPI {
      * @param fn: 当设置为回放时要打开的回放文件
      */
     mode(mode, fn) {
-        if(mode !== this.mode) {
-            this.scanThread.pause();
-            this.mode = mode;
-            if(mode === 0) {
-                this.curFile.close();
-                for(let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
-                    this.grayScale[i] = i % 255;
-                }
-            } else {
-                this.curFile.open(fn);
-                for(let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
-                    this.grayScale[i] = 0;
-                }
+        this.scanThread.pause();
+        this.smode = mode;
+        if (mode === 0) {
+            this.curFile.close();
+            for (let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
+                this.grayScale[i] = i % 255;
             }
-            this.scanThread.restart();
+        } else {
+            this.curFile.open(fn);
+            for (let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
+                this.grayScale[i] = 0;
+            }
         }
+        this.scanThread.restart();
     }
 
     loadColorMap(fn) {

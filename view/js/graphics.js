@@ -339,26 +339,18 @@ class Clock {
     constructor(targetTickRate) {
         this.tickRate = targetTickRate;
         this.prevTS = new Date().getTime();
-        this.start = false;
         this.tpause = false;
     }
 
     run(cb) {
-        if(this.tickRate <= 1000) {
-            this.interval = setInterval(() => {
+        this.interval = setInterval(() => {
+            if(!this.tpause) {
                 let curTS = new Date().getTime(),
                     prevTS = this.prevTS;
                 this.prevTS = curTS;
                 cb(curTS - prevTS);
-            }, 1000 / this.tickRate);
-        } else {
-            (async () => {
-                while(this.start) {
-                    if(this.tpause) continue;
-                    cb();
-                }
-            })();
-        }
+            }
+        }, 1000 / this.tickRate);
         this.cb = cb;
     }
 
@@ -368,24 +360,18 @@ class Clock {
             let curTS = new Date().getTime(),
                 prevTS = this.prevTS;
             this.cb(curTS - prevTS);
-        } else if(this.start) {
-            this.start = false;
         }
     }
 
     pause() {
         if(this.interval) {
-            clearInterval(this.interval);
-        } else if(this.start) {
             this.tpause = true;
         }
     }
 
     restart() {
         if(this.interval) {
-            this.run(this.cb);
-        } else if(this.start) {
-                this.tpause = false;
+            this.tpause = false;
         }
     }
 

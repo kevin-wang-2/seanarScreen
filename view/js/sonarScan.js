@@ -23,11 +23,11 @@ exports.generateDelta = generateDelta;
 /**
  * 将声呐数据缩放到显示半径以便显示
  * @param src: 源数据
+ * @param sourceLength: 源数据点数
  * @param targetLength: 目标半径
  */
-function scaleData(src, targetLength) {
-    let sourceLength = src.length,
-        step = sourceLength / targetLength,
+function scaleData(src, sourceLength, targetLength) {
+    let step = sourceLength / targetLength,
         ret = [];
 
     if(step > 1) {
