@@ -22,19 +22,19 @@ module.exports = function(document) {
             $("[name='hfMinrange.2m']").val(conf["HIGH FREQUENCY MINRANGE"]["2m"]);
             $("[name='hfMinrange.3-5m']").val(conf["HIGH FREQUENCY MINRANGE"]["3-5m"]);
             $("[name='hfMinrange.5-10m']").val(conf["HIGH FREQUENCY MINRANGE"]["5-10m"]);
-            $("[name='hfMinrange.gt10m']").val(conf["HIGH FREQUENCY MINRANGE"][">m"]);
+            $("[name='hfMinrange.gt10m']").val(conf["HIGH FREQUENCY MINRANGE"][">10m"]);
             $("[name='lfMinrange.1m']").val(conf["LOW FREQUENCY MINRANGE"]["1m"]);
             $("[name='lfMinrange.2m']").val(conf["LOW FREQUENCY MINRANGE"]["2m"]);
             $("[name='lfMinrange.3-5m']").val(conf["LOW FREQUENCY MINRANGE"]["3-5m"]);
             $("[name='lfMinrange.5-10m']").val(conf["LOW FREQUENCY MINRANGE"]["5-10m"]);
             $("[name='lfMinrange.gt10m']").val(conf["LOW FREQUENCY MINRANGE"][">10m"]);
             $("[name='hfGate.1m']").val(conf["HIGH FREQUENCY GATE"]["1m"]);
-            $("[name='hfGatee.2m']").val(conf["HIGH FREQUENCY GATE"]["2m"]);
+            $("[name='hfGate.2m']").val(conf["HIGH FREQUENCY GATE"]["2m"]);
             $("[name='hfGate.3-5m']").val(conf["HIGH FREQUENCY GATE"]["3-5m"]);
             $("[name='hfGate.5-10m']").val(conf["HIGH FREQUENCY GATE"]["5-10m"]);
             $("[name='hfGate.gt10m']").val(conf["HIGH FREQUENCY GATE"][">10m"]);
             $("[name='lfGate.1m']").val(conf["LOW FREQUENCY GATE"]["1m"]);
-            $("[name='lfGatee.2m']").val(conf["LOW FREQUENCY GATE"]["2m"]);
+            $("[name='lfGate.2m']").val(conf["LOW FREQUENCY GATE"]["2m"]);
             $("[name='lfGate.3-5m']").val(conf["LOW FREQUENCY GATE"]["3-5m"]);
             $("[name='lfGate.5-10m']").val(conf["LOW FREQUENCY GATE"]["5-10m"]);
             $("[name='lfGate.gt10m']").val(conf["LOW FREQUENCY GATE"][">10m"]);
@@ -62,6 +62,24 @@ module.exports = function(document) {
                     "3-5m": $("[name='hfMinrange.3-5m']").val(),
                     "5-10m": $("[name='hfMinrange.5-10m']").val(),
                     ">10m": $("[name='hfMinrange.gt10m']").val(),
+                }, "LOW FREQUENCY MINRANGE": {
+                    "1m": $("[name='lfMinrange.1m']").val(),
+                    "2m": $("[name='lfMinrange.2m']").val(),
+                    "3-5m": $("[name='lfMinrange.3-5m']").val(),
+                    "5-10m": $("[name='lfMinrange.5-10m']").val(),
+                    ">10m": $("[name='lfMinrange.gt10m']").val(),
+                }, "HIGH FREQUENCY GATE": {
+                    "1m": $("[name='hfGate.1m']").val(),
+                    "2m": $("[name='hfGate.2m']").val(),
+                    "3-5m": $("[name='hfGate.3-5m']").val(),
+                    "5-10m": $("[name='hfGate.5-10m']").val(),
+                    ">10m": $("[name='hfGate.gt10m']").val(),
+                }, "LOW FREQUENCY GATE": {
+                    "1m": $("[name='lfGate.1m']").val(),
+                    "2m": $("[name='lfGate.2m']").val(),
+                    "3-5m": $("[name='lfGate.3-5m']").val(),
+                    "5-10m": $("[name='lfGate.5-10m']").val(),
+                    ">10m": $("[name='lfGate.gt10m']").val(),
                 }
             };
             ipcRenderer.send("saveParam", newConf);

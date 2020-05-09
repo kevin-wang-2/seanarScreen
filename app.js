@@ -535,13 +535,22 @@ let template = [
                 submenu: [
                     {
                         label: "图像叠加",
-                        type: "radio"
+                        type: "radio",
+                        click: () => {
+                            mainWindow.webContents.send("setProfileMode", 0);
+                        }
                     }, {
                         label: "仅剖面",
-                        type: "radio"
+                        type: "radio",
+                        click: () => {
+                            mainWindow.webContents.send("setProfileMode", 1);
+                        }
                     }, {
                         label: "仅图像",
-                        type: "radio"
+                        type: "radio",
+                        click: () => {
+                            mainWindow.webContents.send("setProfileMode", 2);
+                        }
                     }
                 ]
             }, {

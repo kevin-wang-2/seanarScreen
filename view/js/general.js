@@ -77,6 +77,9 @@ module.exports = (document) => {
         ipcRenderer.on("toggleFlag", function() {
             curSonar.flag = !curSonar.flag;
         });
+        ipcRenderer.on("setProfileMode", function(ev, arg) {
+            curSonar.profile = arg;
+        });
 
         /**
          * 下位机事件

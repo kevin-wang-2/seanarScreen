@@ -50,7 +50,8 @@ class PPI {
         this.connection = false;
         this.smode = 0;
 
-        this.minRange = 0;
+        //设置最小量程(对于不同的
+        this.minRange = 180;
 
         this.measureLine = false;
         this.measuring = false;
@@ -59,6 +60,10 @@ class PPI {
 
         this.AScanLine = false;
         this.AScanAngle = 0;
+        this.AScanBuf = 0;
+        this.AScanProfile = 0;
+
+        this.soundSpeed = 1485;
 
         this.profile = 0; // 0: 图像叠加, 1: 仅剖面， 2: 仅图像
 
@@ -98,6 +103,11 @@ class PPI {
 
         $(canvas).on("click", () => {
             this.measuring = false;
+            if(this.AScanLine === true) {
+                this.center[0] += 20;
+                this.AScanBuf = [];
+                this.AScanProfile = 0;
+            }
             this.AScanLine = false;
         });
 
@@ -143,6 +153,7 @@ class PPI {
 
         $(canvas).on("dblclick", (ev) => {
             this.measureLine = false;
+            if(this.AScanLine === false) this.center[0] -= 20;
             this.AScanLine = true;
             if(ev.offsetX > this.center[0] || (ev.offsetX === this.center[0] && ev.offsetY > this.center[1]))
                 this.AScanAngle = Math.atan((ev.offsetY - this.center[1]) / (ev.offsetX - this.center[0]));
@@ -260,8 +271,22 @@ class PPI {
         if(this.AScanLine) {
             ctx.beginPath();
             ctx.moveTo(this.center[0], this.center[1]);
-            ctx.lineTo(this.center[0] + this.scanRadius * Math.cos(this.AScanAngle), this.center[1] + this.scanRadius * Math.sin(this.AScanAngle))
+            ctx.lineTo(this.center[0] + this.scanRadius * Math.cos(this.AScanAngle), this.center[1] + this.scanRadius * Math.sin(this.AScanAngle));
+            for(let i = 0 ; i < 101; i++) {
+                ctx.moveTo(this.context.windowSize - 10, this.context.windowSize - 30 - Math.floor((this.context.windowSize - 50) / 100 * i));
+                ctx.lineTo(this.context.windowSize - 19, this.context.windowSize - 30 - Math.floor((this.context.windowSize - 50) / 100 * i));
+            }
+
+            ctx.moveTo(this.context.windowSize - 20, this.context.windowSize - 30);
+            let f = (this.context.windowSize - 50) / this.AScanBuf.length;
+            for(let i = 0 ; i < this.AScanBuf.length; i++) {
+                ctx.lineTo(this.context.windowSize - 20 - this.AScanBuf[i] / 255 * 40, this.context.windowSize - 30 - Math.floor(i * f))
+            }
             ctx.stroke();
+            if(this.AScanProfile) {
+                ctx.textBaseline = "top";
+                ctx.fillText(Math.floor(this.AScanProfile * 100) / 100, this.context.windowSize - 40, this.context.windowSize - 20)
+            }
         }
     }
 
@@ -336,6 +361,16 @@ class PPI {
         if(!res) return;
 
         // TODO: 处理minimum range
+
+        res.data = this.processMinRange(res.data, res.length);
+        res.data = this.processProfile(res.data, res.length);
+        if(this.AScanLine)
+            if(Math.abs(3 * Math.PI / 2 - res.header.m_nAngle * 0.45 * Math.PI / 180 - this.AScanAngle) <= Math.PI / 360) {
+                this.AScanBuf = res.data.slice(0, res.length);
+                let profile = res.data[res.length];
+                profile += res.data[res.length + 1] << 7;
+                this.AScanProfile = profile * 2.5e-6 * this.soundSpeed / 2.0;
+            }
 /*
         // PPI要进行插值, 先扫描插值数据
         for(let i = 0; i < res.length; i++) {
@@ -363,6 +398,30 @@ class PPI {
             let dA = res.header.m_nAngle*0.45;
             this.scan(dA, res.data, res.length);
         }, 2.5)
+    }
+
+    processMinRange(data, len) {
+        let minSample = Math.floor(this.minRange * len / this.scanRange / 1000);
+        console.log(minSample);
+        while(minSample >= 0) data[minSample--] = 0;
+        return data;
+    }
+
+    processProfile(data, len) {
+        if(this.profile === 1) { // 仅Profile, 清除data
+            for(let i = 0; i < len; i++) data[i] = 0;
+        }
+
+        if(this.profile !== 2) { // 结合模式
+            let profile = data[len];
+            profile += data[len + 1] << 7;
+            let profileRange = profile * 2.5e-6 * this.soundSpeed / 2.0 / this.scanRange;
+            let pos = Math.floor(profileRange * len);
+            if(profileRange > 1) pos = len - 1;
+            data[pos] = 255;
+            data[pos + 1] = 0;
+        }
+        return data;
     }
 
     /**
