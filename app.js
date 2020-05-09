@@ -3,7 +3,7 @@ const path = require('path');
 const {Sonar} = require("./local/sonarControl");
 
 let mainWindow, menu,
-    sonar = new Sonar("192.168.0.7");
+    sonar = new Sonar("192.168.0.121");
 
 function createWindow() {
     menu = Menu.buildFromTemplate(template);
@@ -529,7 +529,7 @@ let template = [
             }
         ]
     }
-];
+]; // 菜单模板
 
 app.on('ready', function() {
     createWindow();
@@ -559,6 +559,7 @@ app.on('ready', function() {
 });
 
 app.on('window-all-closed', function () {
+    sonar.terminate();
     if (process.platform !== 'darwin') app.quit()
 });
 

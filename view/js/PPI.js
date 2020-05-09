@@ -38,8 +38,8 @@ class PPI {
         this.baseMask = new CircleMask(graphSize, graphSize, this.scanRadius, this.scanRadius, this.scanRadius);
         this.baseMask.consolidate();
         this.grayScale = [];
-        for(let i = 0; i < graphSize * graphSize; i++) {
-            this.grayScale[i] = i % 255;
+        for (let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
+            this.grayScale[i] = 0;
         }
 
         this.colorMap = new ColorMap();
@@ -143,12 +143,14 @@ class PPI {
      * 获取下位机信息后进行扫描
      * @param data
      */
-    recieveSonarData(data) {
+    receiveSonarData(data) {
         if(this.smode === 1) return; // 当前处于回放模式, 不进行显示
 
         // TODO: 处理minimum range
 
         let dA = data.header.m_nAngle*0.45;
+        this.scanAngle = data.header.m_nAngle*0.45;
+        this.scanRange = data.header.ucRange;
         this.scan(dA, data.data, data.length);
 
         // TODO: 将数据写入回放文件
@@ -255,7 +257,7 @@ class PPI {
         if (mode === 0) {
             this.curFile.close();
             for (let i = 0; i < this.scanRadius * this.scanRadius * 4; i++) {
-                this.grayScale[i] = i % 255;
+                this.grayScale[i] = 0;
             }
         } else {
             this.curFile.open(fn);

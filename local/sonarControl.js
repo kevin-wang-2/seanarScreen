@@ -78,7 +78,7 @@ class Sonar {
         });
 
         // 发送控制心跳包
-        setInterval(() => {
+        this.heartBeat = setInterval(() => {
             this.sendData();
         }, 100);
     }
@@ -113,15 +113,15 @@ class Sonar {
         buf.push(buf.writeUInt8, this.ucLOGF);
         buf.push(buf.writeUInt8, this.ucAbsorption);
         buf.push(buf.writeUInt8, this.ucStepSize);
-        buf.push(buf.writeUIntBE, this.nSoundSpeed, 2);
-        buf.push(buf.writeUIntBE, this.nTrainAngle, 2);
-        buf.push(buf.writeUIntBE, this.nSectorWidth, 2);
-        buf.push(buf.writeUIntBE, this.nDataLen, 2);
+        buf.push(buf.writeUIntBE, this.nSoundSpeed, [2]);
+        buf.push(buf.writeUIntBE, this.nTrainAngle, [2]);
+        buf.push(buf.writeUIntBE, this.nSectorWidth, [2]);
+        buf.push(buf.writeUIntBE, this.nDataLen, [2]);
         buf.push(buf.writeUInt8, this.ucPulseType);
         buf.push(buf.writeUInt8, 0);
-        buf.push(buf.writeUIntBE, this.nGate, 2);
-        buf.push(buf.writeUIntBE, this.nMinRange, 2);
-        buf.push(buf.writeUIntBE, this.nDelay, 2);
+        buf.push(buf.writeUIntBE, this.nGate, [2]);
+        buf.push(buf.writeUIntBE, this.nMinRange, [2]);
+        buf.push(buf.writeUIntBE, this.nDelay, [2]);
         buf.push(buf.writeUInt8, 0);
         buf.push(buf.writeUInt8, 0);
         buf.push(buf.writeUInt8, this.ucFreq);
@@ -142,15 +142,15 @@ class Sonar {
         buf.push(buf.writeUInt8, this.ucLOGF);
         buf.push(buf.writeUInt8, this.ucAbsorption);
         buf.push(buf.writeUInt8, this.ucStepSize);
-        buf.push(buf.writeUIntBE, this.nSoundSpeed, 2);
-        buf.push(buf.writeUIntBE, this.nTrainAngle, 2);
-        buf.push(buf.writeUIntBE, this.nSectorWidth, 2);
-        buf.push(buf.writeUIntBE, this.nDataLen, 2);
+        buf.push(buf.writeUIntBE, this.nSoundSpeed, [2]);
+        buf.push(buf.writeUIntBE, this.nTrainAngle, [2]);
+        buf.push(buf.writeUIntBE, this.nSectorWidth, [2]);
+        buf.push(buf.writeUIntBE, this.nDataLen, [2]);
         buf.push(buf.writeUInt8, this.ucPulseType);
         buf.push(buf.writeUInt8, 0);
-        buf.push(buf.writeUIntBE, this.nGate, 2);
-        buf.push(buf.writeUIntBE, this.nMinRange, 2);
-        buf.push(buf.writeUIntBE, this.nDelay, 2);
+        buf.push(buf.writeUIntBE, this.nGate, [2]);
+        buf.push(buf.writeUIntBE, this.nMinRange, [2]);
+        buf.push(buf.writeUIntBE, this.nDelay, [2]);
         buf.push(buf.writeUInt8, 0);
         buf.push(buf.writeUInt8, 0);
         buf.push(buf.writeUInt8, this.ucFreq);
@@ -159,10 +159,7 @@ class Sonar {
         buf.push(buf.writeUInt8, 0xff);
         buf.push(buf.writeUInt8, 0xff);
         buf.push(buf.writeUInt8, 0xff);
-        return {
-            data: buf,
-            length: 72
-        }
+        return buf
     }
 
     /**
@@ -211,7 +208,7 @@ class Sonar {
      */
     registerRecieveFn(fn) {
         this.onReceive = (data) => {
-            this.dataBuffer = data.concat(this.dataBuffer, this.dataBuffer.length + data.length); // enqueue
+            this.dataBuffer = Buffer.concat([data, this.dataBuffer], this.dataBuffer.length + data.length); // enqueue
             if(this.dataBuffer.length >= 8 && this.receiveStatus === 0) {
                 let headerData = this.dataBuffer.slice(this.dataBuffer.length - 8, this.dataBuffer.length).toJSON().data;
                 this.headerTemp = {
@@ -230,22 +227,25 @@ class Sonar {
                         // TODO: 处理命令接收错误
                     }
 
-                    this.dataLength = ((this.headerTemp.ucDataHi & 0x7f) << 7) | (this.headerTemp.ucAngleLo & 0x7f);
+                    this.dataLength = ((this.headerTemp.ucDataHi & 0x7f) << 7) | (this.headerTemp.ucDataLo & 0x7f);
                     if(this.dataLength !== this.sampleNum) {
                         // TODO: 处理数据长度错误
                     }
 
-                    this.headerTemp.m_nAngle = ((this.headerTemp.ucAngleHi & 0x7f) << 7) | (this.headerTemp.ucAngleHi & 0x7f);
+                    this.headerTemp.m_nAngle = ((this.headerTemp.ucAngleHi & 0x7f) << 7) | (this.headerTemp.ucAngleLo & 0x7f);
                     this.receiveStatus = 1;
                 } else {
                     this.receiveStatus = 0;
                 }
             }
             if(this.dataBuffer.length >= this.dataLength + 2) {
-                let data = this.dataBuffer.slice(this.dataBuffer.length - this.dataLength, this.dataBuffer.length).toJSON().data;
-                this.dataBuffer = this.dataBuffer.slice(0, this.dataBuffer.length - this.dataLength); // dequeue
+                let data = this.dataBuffer.slice(this.dataBuffer.length - this.dataLength - 2, this.dataBuffer.length).toJSON().data;
+                this.dataBuffer = this.dataBuffer.slice(0, this.dataBuffer.length - this.dataLength - 2); // dequeue
                 this.receiveStatus = 0;
-                cb({
+
+                this.headerTemp.ucRange = this.ucRange;
+
+                fn({
                     data: data,
                     header: this.headerTemp,
                     length: this.dataLength
@@ -264,10 +264,15 @@ class Sonar {
         if(this.ready) {
             this.ready = false;
             let buf = this.toBuffer();
-            this.udp_client.send(buf.data, 0, buf.length, 23, this.ip, () => {
+            this.udp_client.send(buf, 0, buf.length, 23, this.ip, () => {
                 this.ready = true;
             });
         }
+    }
+
+    terminate() {
+        clearInterval(this.heartBeat);
+        this.udp_client.close();
     }
 }
 

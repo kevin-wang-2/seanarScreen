@@ -64,7 +64,7 @@ module.exports = (document) => {
          * 下位机事件
          */
         ipcRenderer.on("receiveSonarData", function(ev, arg) {
-            curSonar.recieveSonarData(data);
+            curSonar.receiveSonarData(arg);
         })
     });
 };
