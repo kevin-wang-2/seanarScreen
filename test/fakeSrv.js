@@ -34,6 +34,6 @@ srv.on("message", (data, rinfo) => {
 
             srv.send(sendBuf, 0, 8, port, address);
             srv.send(new Buffer(data.data), 0, data.length + 2, port, address)
-        }, 200);
+        }, 20);
     }
 });

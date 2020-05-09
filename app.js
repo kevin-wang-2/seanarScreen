@@ -1,22 +1,49 @@
 const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut} = require('electron');
-const path = require('path');
 const {Sonar} = require("./local/sonarControl");
+const ini = require("ini");
+const fs = require("fs");
+
+let conf;
+try {
+    conf = ini.parse(fs.readFileSync("StPipe.ini").toString());
+} catch(err) {
+    conf = {};
+    conf["DISPLAY"] = {};
+    conf["DISPLAY"]["WIDTH"] = 1920;
+    conf["DISPLAY"]["HEIGHT"] = 1080;
+    conf["SONAR PARAM"] = {};
+    conf["SONAR PARAM"]["RANGE"] = 2;
+    conf["SONAR PARAM"]["DISPLAY_MODE"] = 0;
+    conf["SONAR PARAM"]["GAIN"] = 20;
+    conf["SONAR PARAM"]["COLOR_TABLE"] = 2;
+    conf["SONAR PARAM"]["HEAD_DOWN"] = 1;
+    conf["SONAR PARAM"]["GRID"] = 1;
+    conf["SONAR PARAM"]["IP ADDRESS"] = "192.168.0.7";
+    fs.writeFileSync("StPipe.ini", ini.encode(conf));
+
+}
 
 let mainWindow, menu,
-    sonar = new Sonar("192.168.0.121");
+    sonar = new Sonar(conf["SONAR PARAM"]["IP ADDRESS"], 0, false,
+        parseInt(conf["SONAR PARAM"]["RANGE"]),
+        parseInt(conf["SONAR PARAM"]["DISPLAY_MODE"]),
+        parseInt(conf["SONAR PARAM"]["GAIN"]) * 0.4);
 
 function createWindow() {
     menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
     mainWindow = new BrowserWindow({
         title: '弋洋声呐显示系统',
+        width: parseInt(conf["DISPLAY"]["WIDTH"]),
+        height: parseInt(conf["DISPLAY"]["HEIGHT"]),
         webPreferences: {
             nodeIntegration: true
         }
     });
 
     mainWindow.loadFile("view/index.html");
-    mainWindow.maximize();
+    if(parseInt(conf["DISPLAY"]["WIDTH"]) === 1920 && parseInt(conf["DISPLAY"]["HEIGHT"]) === 1080)
+        mainWindow.maximize();
 }
 
 
@@ -90,7 +117,42 @@ let template = [
                 label: "首选项",
                 accelerator: 'CmdOrCtrl+Alt+S',
                 click: () => {
-                    mainWindow.webContents.send("message");
+                    let paramWindow = new BrowserWindow({
+                        parent: mainWindow,
+                        modal: true,
+                        title: "首选项",
+                        width: 800,
+                        height: 400,
+                        useContentSize: true,
+                        resizable: false,
+                        minimizable: false,
+                        maximizable: false,
+                        autoHideMenuBar: true,
+                        webPreferences: {
+                            nodeIntegration: true
+                        }
+                    });
+
+                    let listener = () => {
+                        paramWindow.webContents.send("param", conf)
+                    };
+
+                    let saveParam = (ev, newConf) => {
+                        fs.writeFileSync("StPipe.ini", ini.encode(newConf));
+                        if(newConf["SONAR PARAM"]["IP ADDRESS"] !== conf["SONAR PARAM"]["IP ADDRESS"]) {
+                            sonar.ip = newConf["SONAR PARAM"]["IP ADDRESS"];
+                        }
+                        conf = newConf;
+                    };
+
+                    ipcMain.on("paramsLoad", listener);
+                    ipcMain.on("saveParam", saveParam);
+
+                    paramWindow.loadFile("view/params.html");
+
+                    paramWindow.on("close", () => {
+                        ipcMain.off("paramsLoad", listener);
+                    })
                 }
             }, {
                 label: "打开开发者工具",
@@ -327,7 +389,7 @@ let template = [
                         label: "(&1) 灰度",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+1",
-                        checked: true,
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 0,
                         click: () => {
                             mainWindow.webContents.send("loadColorMap", null);
                         }
@@ -336,64 +398,73 @@ let template = [
                         label: "(&2) 火山红-亮",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+2",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 1,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/hot.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/hot.bin");
                         }
                     }, {
                         label: "(&3) 火山红-暗",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+3",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 2,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "rc/hot.png");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/hot.png");
                         }
                     }, {
                         label: "(&4) 古铜色",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+4",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 3,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/copper.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/copper.bin");
                         }
                     }, {
                         label: "(&5) 高对比度",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+5",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 4,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/jet.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/jet.bin");
                         }
                     }, {
                         label: "(&6) 冷色调",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+6",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 5,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/cool.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/cool.bin");
                         }
                     }, {
                         label: "(&7) 蓝色",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+7",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 6,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "rc/cool.png");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/cool.png");
                         }
                     }, {
                         label: "(&8) 绿色",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+8",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 7,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/green.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/green.bin");
                         }
                     }, {
                         label: "(&9) 雷达灰",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+9",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 8,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "view/rc/bone.bin");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/bone.bin");
                         }
                     }, {
                         label: "(&0) HSV",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+0",
+                        checked: parseInt(conf["SONAR PARAM"]["COLOR_TABLE"]) === 9,
                         click: () => {
-                            mainWindow.webContents.send("loadColorMap", "rc/hsv.png");
+                            mainWindow.webContents.send("loadColorMap", __dirname + "/view/rc/hsv.png");
                         }
                     }
                 ]
@@ -403,6 +474,7 @@ let template = [
                     {
                         label: "上",
                         type: "radio",
+                        checked: conf["SONAR PARAM"]["HEAD_DOWN"] === "0",
                         click: () => {
                             mainWindow.webContents.send("setSonarHeading", false);
                         }
@@ -410,7 +482,7 @@ let template = [
                     {
                         label: "下",
                         type: "radio",
-                        checked: true,
+                        checked: conf["SONAR PARAM"]["HEAD_DOWN"] === "1",
                         click: () => {
                             mainWindow.webContents.send("setSonarHeading", true);
                         }
@@ -422,7 +494,7 @@ let template = [
                     {
                         label: "开",
                         type: "radio",
-                        checked: true,
+                        checked: conf["SONAR PARAM"]["GRID"] === "1",
                         id: "gridOn",
                         click: () => {
                             mainWindow.webContents.send("grid", true);
@@ -430,7 +502,7 @@ let template = [
                     }, {
                         label: "关",
                         type: "radio",
-                        checked: false,
+                        checked: conf["SONAR PARAM"]["GRID"] === "0",
                         id: "gridOff",
                         click: () => {
                             mainWindow.webContents.send("grid", false);
@@ -555,12 +627,16 @@ app.on('ready', function() {
 
     sonar.registerRecieveFn((res) => {
         mainWindow.webContents.send("receiveSonarData", res)
+    });
+
+    ipcMain.on("ready", function(ev) {
+        ev.sender.send("loadConfig", conf);
     })
 });
 
 app.on('window-all-closed', function () {
     sonar.terminate();
-    if (process.platform !== 'darwin') app.quit()
+    app.quit();
 });
 
 app.on('activate', function () {

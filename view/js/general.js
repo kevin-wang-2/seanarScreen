@@ -2,12 +2,30 @@ window.$ = require("./jquery-2.1.4.min");
 const PPI = require("./PPI");
 const {ipcRenderer} = require("electron");
 
+const internalColorTable = [
+    null,
+    "view/rc/hot.bin",
+    "rc/hot.png",
+    "view/rc/copper.bin",
+    "view/rc/jet.bin",
+    "view/rc/cool.bin",
+    "rc/cool.png",
+    "view/rc/green.bin",
+    "view/rc/bone.bin",
+    "rc/hsv.png"
+];
 
 module.exports = (document) => {
     $(document).ready(() => {
-        let maxRadius = Math.min(window.innerWidth, window.innerHeight) - 40; // 为栅格与扫描标志留下空间
+        let maxRadius = Math.min(window.innerWidth, window.innerHeight) - 80; // 为栅格与扫描标志留下空间
         let curSonar = new PPI($("canvas")[0], maxRadius),
             paused = false;
+
+        ipcRenderer.send("ready");
+        ipcRenderer.on("loadConfig", function(ev, cfg) {
+            curSonar.loadColorMap(internalColorTable[parseInt(cfg["SONAR PARAM"]["COLOR_TABLE"])]);
+            curSonar.grid = cfg["SONAR PARAM"]["GRID"] === "1";
+        });
 
         /**
          * 声呐回放相关事件
@@ -30,10 +48,10 @@ module.exports = (document) => {
         ipcRenderer.on("pause", function(ev) {
             if(!paused) {
                 curSonar.scanThread.pause();
-                curSonar.redrawThread.pause();
+                //curSonar.redrawThread.pause();
             } else {
                 curSonar.scanThread.restart();
-                curSonar.redrawThread.restart();
+                //curSonar.redrawThread.restart();
             }
             paused = !paused;
         });

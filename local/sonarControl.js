@@ -244,6 +244,8 @@ class Sonar {
                 this.receiveStatus = 0;
 
                 this.headerTemp.ucRange = this.ucRange;
+                this.headerTemp.ucFreq = this.ucFreq;
+                this.headerTemp.ucGain = this.ucStartGain;
 
                 fn({
                     data: data,

@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-packager ./ seanarscreen --out ./StPipe-electron --overwrite --icon=./StPipe.ico --all --asar"
   },
   "dependencies": {
-    "electron": "latest"
+    "electron-packager": "latest"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "ini": "latest"
   }
 }

@@ -74,8 +74,8 @@ class SonarFile {
             ucDataLenHi: headBufferArray[11],
 
             ucFreq: headBufferArray[12],
-            ucGain: headBufferArray[13],
-            ucRange: headBufferArray[14],
+            ucRange: headBufferArray[13],
+            ucGain: headBufferArray[14],
             ucResl: headBufferArray[15],
 
             ucMaxStepLo: headBufferArray[16],

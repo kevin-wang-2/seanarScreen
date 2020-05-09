@@ -11,11 +11,14 @@ const scanLineCnt = 7200,
 class PPI {
     constructor(canvas, graphSize = 800) {
         this.context = new Context(canvas, graphSize);
-        this.center = [this.context.windowSize / 2, this.context.windowSize / 2];
+        this.center = [this.context.windowSize / 2 - 10, this.context.windowSize / 2];
 
         this.headDown = true;
         this.grid = true;
         this.flag = true;
+
+        this.frequency = 0;
+        this.gain = 0;
 
         this.scanAngle = 0;
         this.scanRadius = graphSize / 2;
@@ -31,6 +34,7 @@ class PPI {
                     this.context = new Context(canvas, graphSize);
                     this.center = [this.context.windowSize / 2, this.context.windowSize / 2];
                     this.scanRadius = graphSize / 2;
+                    this.measureLine = false;
                 });
             }
         };
@@ -43,6 +47,20 @@ class PPI {
         }
 
         this.colorMap = new ColorMap();
+        this.connection = false;
+        this.smode = 0;
+
+        this.minRange = 0;
+
+        this.measureLine = false;
+        this.measuring = false;
+        this.measureStart = [];
+        this.measureEnd = [];
+
+        this.AScanLine = false;
+        this.AScanAngle = 0;
+
+        this.profile = 0; // 0: 图像叠加, 1: 仅剖面， 2: 仅图像
 
         this.events = new EventEmitter(); // 接收其他线程中的事件
 
@@ -65,6 +83,71 @@ class PPI {
             } else {
                 // TODO: 声呐PPI
             }
+        });
+
+        // 测量
+        $(canvas).on("mousedown", (ev) => {
+            if(this.measureLine) this.measureLine = false;
+            else if (((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < this.scanRadius * this.scanRadius) {
+                this.measureLine = true;
+                this.measuring = true;
+                this.measureStart = [ev.offsetX, ev.offsetY];
+                this.measureEnd = [ev.offsetX, ev.offsetY];
+            }
+        });
+
+        $(canvas).on("click", () => {
+            this.measuring = false;
+            this.AScanLine = false;
+        });
+
+        $(canvas).on("mouseup", () => {
+            this.measuring = false;
+        });
+
+        $(canvas).on("mousemove", (ev) => {
+            if(this.measuring)
+                if (((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < this.scanRadius * this.scanRadius)
+                    this.measureEnd = [ev.offsetX, ev.offsetY];
+                else {
+                    // 后面是一堆解析几何运算
+                    let k = (ev.offsetY - this.measureStart[1]) / (ev.offsetX - this.measureStart[0]), // 直线斜率
+                        A = k * this.center[0] - this.center[1],
+                        B = this.measureStart[1] - k * this.measureStart[0],
+                        C = A + B,
+                        k1 = this.scanRadius * k,
+                        k2 = -this.scanRadius,
+                        a = k1 * k1 + k2 * k2,
+                        b = 2 * C * k2,
+                        c = C * C - k1 * k1;
+
+                    // 解方程求出cos\theta, 注意需要验根
+                    let delta = b * b - 4 * a * c,
+                        q1 = (-b + Math.sqrt(delta)) / 2 / a,
+                        q2 = (-b - Math.sqrt(delta)) / 2 / a,
+                        p1 = -(k2 * q1 + C) / k1,
+                        p2 = -(k2 * q2 + C) / k1;
+
+                    // 验根, 利用向量点乘
+                    let x1 = p1 * this.scanRadius + this.center[0],
+                        x2 = p2 * this.scanRadius + this.center[0],
+                        y1 = q1 * this.scanRadius + this.center[1],
+                        y2 = q2 * this.scanRadius + this.center[1];
+                    if(((x1 - this.measureStart[0]) * (x1 - ev.offsetX) + (y1 - this.measureStart[1]) * (y1 - ev.offsetY)) < 0) {
+                        this.measureEnd = [Math.floor(x1), Math.floor(y1)];
+                    } else {
+                        this.measureEnd = [Math.floor(x2), Math.floor(y2)];
+                    }
+                }
+        });
+
+        $(canvas).on("dblclick", (ev) => {
+            this.measureLine = false;
+            this.AScanLine = true;
+            if(ev.offsetX > this.center[0] || (ev.offsetX === this.center[0] && ev.offsetY > this.center[1]))
+                this.AScanAngle = Math.atan((ev.offsetY - this.center[1]) / (ev.offsetX - this.center[0]));
+            else
+                this.AScanAngle = Math.atan((ev.offsetY - this.center[1]) / (ev.offsetX - this.center[0])) + Math.PI;
         });
     }
 
@@ -103,6 +186,82 @@ class PPI {
             ctx.closePath();
             ctx.fillStyle = "black";
             ctx.fill();
+        }
+        /**
+         * 绘制提示文字
+         */
+        ctx.font = "18px bold 黑体";
+        ctx.textBaseline = "bottom";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "white";
+        if(this.smode === 0)
+            ctx.fillText("实时模式", 0, this.context.windowSize - 100);
+        else
+            ctx.fillText("回放模式", 0, this.context.windowSize - 100);
+
+        if(this.connection || this.smode === 1) {
+            ctx.fillText("频率: " + ((this.frequency === 0)?"自动":((this.frequency === 40)?"低频":"高频")), 0, this.context.windowSize - 80);
+            ctx.fillText("增益: " + this.gain + "%", 0, this.context.windowSize - 60);
+            ctx.fillText("量程: " + this.scanRange + "m", 0, this.context.windowSize - 40);
+        } else {
+            ctx.fillText("正在连接声呐...", 0, this.context.windowSize - 80);
+        }
+        /**
+         * 绘制色表
+         */
+        let CTRange = ctx.getImageData(this.context.windowSize - 10, 0, 10, this.context.windowSize);
+
+        let CMRaw = this.colorMap.colorMap;
+        let CMProcessed = [];
+        if(CMRaw.length < this.context.windowSize) { // 进行插值
+            let step = CMRaw.length / this.context.windowSize;
+            for(let i = 0; i < this.context.windowSize; i++) {
+                let floor = Math.floor(i * step);
+                let disToFloor = i * step - floor;
+                if(floor === 255) {
+                    CMProcessed[i] = [CMRaw[floor][0], CMRaw[floor][1], CMRaw[floor][2]];
+                } else {
+                    CMProcessed[i] = [disToFloor * CMRaw[floor][0] + (1 - disToFloor) * CMRaw[floor + 1][0],
+                        disToFloor * CMRaw[floor][1] + (1 - disToFloor) * CMRaw[floor + 1][1],
+                        disToFloor * CMRaw[floor][2] + (1 - disToFloor) * CMRaw[floor + 1][2]
+                    ];
+                }
+            }
+        }
+
+        for(let i = 0; i < this.context.windowSize; i++) {
+            for(let j = 0; j < 10; j++) {
+                let pos = i * 10 + j;
+                CTRange.data[pos * 4] = CMProcessed[i][0];
+                CTRange.data[pos * 4 + 1] = CMProcessed[i][1];
+                CTRange.data[pos * 4 + 2] = CMProcessed[i][2];
+                CTRange.data[pos * 4 + 3] = 255;
+            }
+        }
+        ctx.putImageData(CTRange, this.context.windowSize - 10, 0);
+        /**
+         * 绘制测量线
+         */
+        if(this.measureLine) {
+            ctx.beginPath();
+            ctx.moveTo(this.measureStart[0], this.measureStart[1]);
+            ctx.lineTo(this.measureEnd[0], this.measureEnd[1]);
+            ctx.stroke();
+            if(Math.floor(Math.sqrt((this.measureStart[0] - this.measureEnd[0]) * (this.measureStart[0] - this.measureEnd[0]) +
+                (this.measureStart[1] - this.measureEnd[1]) * (this.measureStart[1] - this.measureEnd[1])) / this.scanRadius * this.scanRange * 10) / 10 !== 0)
+                ctx.fillText(
+                    Math.floor(Math.sqrt((this.measureStart[0] - this.measureEnd[0]) * (this.measureStart[0] - this.measureEnd[0]) +
+                        (this.measureStart[1] - this.measureEnd[1]) * (this.measureStart[1] - this.measureEnd[1])) / this.scanRadius * this.scanRange * 10) / 10
+                    + "m", this.measureEnd[0], this.measureEnd[1])
+        }
+        /**
+         * 绘制AScan
+         */
+        if(this.AScanLine) {
+            ctx.beginPath();
+            ctx.moveTo(this.center[0], this.center[1]);
+            ctx.lineTo(this.center[0] + this.scanRadius * Math.cos(this.AScanAngle), this.center[1] + this.scanRadius * Math.sin(this.AScanAngle))
+            ctx.stroke();
         }
     }
 
@@ -145,12 +304,16 @@ class PPI {
      */
     receiveSonarData(data) {
         if(this.smode === 1) return; // 当前处于回放模式, 不进行显示
+        this.connection = true;
 
         // TODO: 处理minimum range
 
         let dA = data.header.m_nAngle*0.45;
         this.scanAngle = data.header.m_nAngle*0.45;
         this.scanRange = data.header.ucRange;
+        this.frequency = data.header.ucFreq;
+        this.gain = data.header.ucGain;
+
         this.scan(dA, data.data, data.length);
 
         // TODO: 将数据写入回放文件
@@ -193,6 +356,8 @@ class PPI {
         this._last_angle = res.header.m_nAngle;
         this.scanAngle = res.header.m_nAngle*0.45;
         this.scanRange = res.header.ucRange;
+        this.frequency = res.header.ucFreq;
+        this.gain = res.header.ucGain;
 
         setTimeout(() => {
             let dA = res.header.m_nAngle*0.45;

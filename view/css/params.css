@@ -1,0 +1,68 @@
+input[type="text"] {
+    appearance: none;
+    font-size: .875rem;
+    margin-left: .5rem;
+    margin-right: .5rem;
+    padding: .3125rem;
+    display: inline-block;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    outline: 2px solid transparent;
+    transition: outline-color .2s, border-color .2s;
+    transition-timing-function: cubic-bezier(.215, .61, .355, 1);
+    height: .5rem;
+}
+
+input[type="text"]:focus {
+    border-color: #5f9fd6;
+    outline: 2px solid #c1e0ff;
+    outline-offset: 0
+}
+
+select {
+    height: 1.2rem;
+    transition: outline-color .2s, border-color .2s;
+    transition-timing-function: cubic-bezier(.215, .61, .355, 1);
+}
+
+select:focus {
+    border-color: #5f9fd6;
+    outline: 2px solid #c1e0ff;
+    outline-offset: 0
+}
+
+body {
+    padding-left: 1rem;
+}
+
+.left {
+    float: left;
+    padding-right: 2rem;
+    margin-right: 1rem;
+    height: 100%;
+}
+
+.title {
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.page--size {
+    width: 2rem;
+}
+
+.sonar--ip {
+    width: 1.5rem;
+}
+
+.minrange {
+    width: 2em;
+}
+div.option {
+    margin-top: 15px;
+}
+
+div.left:first-child {
+    border-right: 1px solid;
+}

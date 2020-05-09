@@ -34,7 +34,7 @@ function Color(r, g, b, a = 100) {
  为位图与ImageData兼容准备的一些辅助函数
  ******/
 
-Array.prototype.toUint8ClampedArray = function () {
+Array.toUint8ClampedArray = function () {
     let ret = new Uint8ClampedArray(this.length);
     this.forEach((item, cnt) => {
         ret[cnt] = item;
@@ -273,7 +273,7 @@ class Context {
     constructor(canvas, graphSize = 500) {
         this.canvas = canvas;
         this.graphSize = graphSize;
-        this.windowSize = Math.min(window.innerHeight, window.innerWidth) > graphSize ? Math.min(window.innerHeight, window.innerWidth): graphSize;
+        this.windowSize = (Math.min(window.innerHeight, window.innerWidth) > graphSize ? Math.min(window.innerHeight, window.innerWidth): graphSize) - canvas.clientTop - 18;
         this.canvas.width = this.canvas.height = this.windowSize;
         this.isContext = true;
         this.ctx = this.canvas.getContext("2d");

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="css/params.css" type="text/css" rel="stylesheet"/>
+    <title>首选项</title>
+    <script>
+        require("./js/params")(document);
+    </script>
+</head>
+<body>
+<div class="left">
+    <div class="title">
+        显示设置
+    </div>
+    <div class="option">
+        <label>页面大小:</label>
+        <input type="text" name="display.width" class="page--size">x<input type="text" name="display.height" class="page--size">
+    </div>
+    <div class="option">
+        <label>显示网格</label>
+        <input type="checkbox" name="display.grid">
+    </div>
+    <div class="option">
+        <label>默认彩色表:</label>
+        <select name="display.colorTable">
+            <option value=0>灰度</option>
+            <option value=1>火山红-亮</option>
+            <option value=2>火山红-暗</option>
+            <option value=3>古铜色</option>
+            <option value=4>高对比度</option>
+            <option value=5>冷色调</option>
+            <option value=6>蓝色</option>
+            <option value=7>绿色</option>
+            <option value=8>雷达灰</option>
+            <option value=9>HSV</option>
+        </select>
+    </div>
+    <div class="title">
+        声呐设置
+    </div>
+    <div class="option">
+        <label>默认声呐IP:</label>
+        <input type="text" name="sonar.ip.1" class="sonar--ip">.
+        <input type="text" name="sonar.ip.2" class="sonar--ip">.
+        <input type="text" name="sonar.ip.3" class="sonar--ip">.
+        <input type="text" name="sonar.ip.4" class="sonar--ip">
+    </div>
+    <div class="option">
+        <label>默认显示模式:</label>
+        <select name="sonar.displayMode">
+            <option value=0>PPI (极坐标)</option>
+            <option value=1>BScan (B扫)</option>
+            <option value=2>Sector (扇扫)</option>
+        </select>
+    </div>
+    <div class="option">
+        <label>默认增益:</label>
+        <select name="sonar.gain">
+            <option value=10>10%</option>
+            <option value=20>20%</option>
+            <option value=30>30%</option>
+            <option value=40>40%</option>
+            <option value=50>50%</option>
+            <option value=60>60%</option>
+            <option value=70>70%</option>
+            <option value=80>80%</option>
+            <option value=90>90%</option>
+            <option value=100>100%</option>
+        </select>
+    </div>
+    <div class="option">
+        <label>默认量程:</label>
+        <select name="sonar.range">
+            <option value=1>1m</option>
+            <option value=2>2m</option>
+            <option value=3>3m</option>
+            <option value=4>4m</option>
+            <option value=5>5m</option>
+            <option value=6>6m</option>
+            <option value=7>7m</option>
+            <option value=8>8m</option>
+            <option value=9>9m</option>
+            <option value=10>10m</option>
+            <option value=15>15m</option>
+            <option value=20>20m</option>
+        </select>
+    </div>
+    <div class="option">
+        <label>默认朝向:</label>
+        <select name="sonar.headDown">
+            <option value=0>朝上</option>
+            <option value=1>朝下</option>
+        </select>
+    </div>
+</div>
+<div class="left">
+    <div class="title">高频最小量程:</div>
+    <div class="option">
+        <table>
+            <tr><td>1m:</td> <td><input type="text" name="hfMinrange.1m" class="minrange"></td></tr>
+            <tr><td>2m:</td> <td><input type="text" name="hfMinrange.2m" class="minrange"></td></tr>
+            <tr><td>3-5m:</td> <td><input type="text" name="hfMinrange.3-5m" class="minrange"></td></tr>
+            <tr><td>5-10m:</td> <td><input type="text" name="hfMinrange.5-10m" class="minrange"></td></tr>
+            <tr><td>&gt;10m:</td> <td><input type="text" name="hfMinrange.gt10m" class="minrange"></td></tr>
+        </table>
+    </div>
+    <div class="title">高频门限:</div>
+    <div class="option">
+        <table>
+            <tr><td>1m:</td> <td><input type="text" name="hfGate.1m" class="minrange"></td></tr>
+            <tr><td>2m:</td> <td><input type="text" name="hfGate.2m" class="minrange"></td></tr>
+            <tr><td>3-5m:</td> <td><input type="text" name="hfGate.3-5m" class="minrange"></td></tr>
+            <tr><td>5-10m:</td> <td><input type="text" name="hfGate.5-10m" class="minrange"></td></tr>
+            <tr><td>&gt;10m:</td> <td><input type="text" name="hfGate.gt10m" class="minrange"></td></tr>
+        </table>
+    </div>
+</div>
+<div class="left">
+    <div class="title">低频最小量程:</div>
+    <div class="option">
+        <table>
+            <tr><td>1m:</td> <td><input type="text" name="lfMinrange.1m" class="minrange"></td></tr>
+            <tr><td>2m:</td> <td><input type="text" name="lfMinrange.2m" class="minrange"></td></tr>
+            <tr><td>3-5m:</td> <td><input type="text" name="lfMinrange.3-5m" class="minrange"></td></tr>
+            <tr><td>5-10m:</td> <td><input type="text" name="lfMinrange.5-10m" class="minrange"></td></tr>
+            <tr><td>&gt;10m:</td> <td><input type="text" name="lfMinrange.gt10m" class="minrange"></td></tr>
+        </table>
+    </div>
+    <div class="title">低频门限:</div>
+    <div class="option">
+        <table>
+            <tr><td>1m:</td> <td><input type="text" name="lfGate.1m" class="minrange"></td></tr>
+            <tr><td>2m:</td> <td><input type="text" name="lfGate.2m" class="minrange"></td></tr>
+            <tr><td>3-5m:</td> <td><input type="text" name="lfGate.3-5m" class="minrange"></td></tr>
+            <tr><td>5-10m:</td> <td><input type="text" name="lfGate.5-10m" class="minrange"></td></tr>
+            <tr><td>&gt;10m:</td> <td><input type="text" name="lfGate.gt10m" class="minrange"></td></tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>
