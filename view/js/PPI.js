@@ -49,14 +49,17 @@ class PPI {
         this.colorMap = new ColorMap();
         this.connection = false;
         this.smode = 0;
+        this.dispmode = 0; // 识别符
 
         //设置最小量程(对于不同的
         this.minRange = 180;
+        this.clearMinRange = true;
 
         this.measureLine = false;
         this.measuring = false;
         this.measureStart = [];
         this.measureEnd = [];
+        this.stick = true;
 
         this.AScanLine = false;
         this.AScanAngle = 0;
@@ -85,8 +88,6 @@ class PPI {
                         for(let i = 0; i < this.replaySpeed; i++) this.replaySonarFile();
                     else this.replaySonarFile();
                 }
-            } else {
-                // TODO: 声呐PPI
             }
         });
 
@@ -96,8 +97,12 @@ class PPI {
             else if (((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < this.scanRadius * this.scanRadius) {
                 this.measureLine = true;
                 this.measuring = true;
-                this.measureStart = [ev.offsetX, ev.offsetY];
-                this.measureEnd = [ev.offsetX, ev.offsetY];
+                if(this.stick && ((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < 10 * 10) {
+                    this.measureStart = this.center;
+                } else {
+                    this.measureStart = [ev.offsetX, ev.offsetY];
+                }
+                this.measureEnd = this.measureStart;
             }
         });
 
@@ -117,9 +122,12 @@ class PPI {
 
         $(canvas).on("mousemove", (ev) => {
             if(this.measuring)
-                if (((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < this.scanRadius * this.scanRadius)
-                    this.measureEnd = [ev.offsetX, ev.offsetY];
-                else {
+                if (((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < this.scanRadius * this.scanRadius) {
+                    if(this.stick && ((ev.offsetX - this.center[0]) * (ev.offsetX - this.center[0]) + (ev.offsetY - this.center[1]) * (ev.offsetY - this.center[1])) < 10 * 10)
+                        this.measureEnd = this.center;
+                    else
+                        this.measureEnd = [ev.offsetX, ev.offsetY];
+                } else {
                     // 后面是一堆解析几何运算
                     let k = (ev.offsetY - this.measureStart[1]) / (ev.offsetX - this.measureStart[0]), // 直线斜率
                         A = k * this.center[0] - this.center[1],
@@ -331,7 +339,16 @@ class PPI {
         if(this.smode === 1) return; // 当前处于回放模式, 不进行显示
         this.connection = true;
 
-        // TODO: 处理minimum range
+        if(this.clearMinRange)
+            data.data = this.processMinRange(res.data, res.length);
+        data.data = this.processProfile(res.data, res.length);
+        if(this.AScanLine)
+            if(Math.abs(3 * Math.PI / 2 - res.header.m_nAngle * 0.45 * Math.PI / 180 - this.AScanAngle) <= Math.PI / 360) {
+                this.AScanBuf = res.data.slice(0, res.length);
+                let profile = res.data[res.length];
+                profile += res.data[res.length + 1] << 7;
+                this.AScanProfile = profile * 2.5e-6 * this.soundSpeed / 2.0;
+            }
 
         let dA = data.header.m_nAngle*0.45;
         this.scanAngle = data.header.m_nAngle*0.45;
@@ -360,9 +377,8 @@ class PPI {
         }
         if(!res) return;
 
-        // TODO: 处理minimum range
-
-        res.data = this.processMinRange(res.data, res.length);
+        if(this.clearMinRange)
+            res.data = this.processMinRange(res.data, res.length);
         res.data = this.processProfile(res.data, res.length);
         if(this.AScanLine)
             if(Math.abs(3 * Math.PI / 2 - res.header.m_nAngle * 0.45 * Math.PI / 180 - this.AScanAngle) <= Math.PI / 360) {
@@ -496,6 +512,12 @@ class PPI {
         ColorMap.fromFile(fn).then((cm) => {
             this.colorMap = cm;
         });
+    }
+
+    stop() {
+        this.redrawThread.stop();
+        if(this.scanThread)
+            this.scanThread.stop();
     }
 }
 

@@ -55,6 +55,7 @@ let template = [
                 label: '打开声呐数据',
                 accelerator: 'CmdOrCtrl+O',
                 role: 'open',
+                id: "openReplay",
                 click: () => {
                     dialog.showOpenDialog({
                         title: "打开声呐回放文件",
@@ -70,6 +71,7 @@ let template = [
                 label: '保存声呐数据',
                 accelerator: 'CmdOrCtrl+S',
                 role: 'save',
+                id: "saveReplay",
                 click: () => {
                     dialog.showSaveDialog({
                         title: "保存声呐回放文件",
@@ -83,6 +85,7 @@ let template = [
             }, {
                 label: '重新加载',
                 accelerator: 'CmdOrCtrl+R',
+                id: "reload",
                 click: function (item, focusedWindow) {
                     if (focusedWindow) {
                         // on reload, start fresh and close any old
@@ -156,6 +159,7 @@ let template = [
                 }
             }, {
                 label: "打开开发者工具",
+                id: "debug",
                 click: () => {
                     mainWindow.webContents.openDevTools()
                 }
@@ -169,74 +173,98 @@ let template = [
                     {
                         label: "1m",
                         type: "radio",
+                        id: "range.1",
                         click: () => {
                             sonar.setRange(1);
+                            mainWindow.webContents.send("setRange", 1);
                         }
                     }, {
                         label: "2m",
                         type: "radio",
+                        id: "range.2",
                         click: () => {
                             sonar.setRange(2);
+                            mainWindow.webContents.send("setRange", 2);
                         }
                     }, {
                         label: "3m",
                         type: "radio",
+                        id: "range.3",
                         click: () => {
                             sonar.setRange(3);
+                            mainWindow.webContents.send("setRange", 3);
                         }
                     }, {
                         label: "4m",
                         type: "radio",
+                        id: "range.4",
                         click: () => {
                             sonar.setRange(4);
+                            mainWindow.webContents.send("setRange", 4);
                         }
                     }, {
                         label: "5m",
                         type: "radio",
+                        id: "range.5",
                         click: () => {
                             sonar.setRange(5);
+                            mainWindow.webContents.send("setRange", 5);
                         }
                     }, {
                         label: "6m",
                         type: "radio",
+                        id: "range.6",
                         click: () => {
                             sonar.setRange(6);
+                            mainWindow.webContents.send("setRange", 6);
                         }
                     }, {
                         label: "7m",
                         type: "radio",
+                        id: "range.7",
                         click: () => {
                             sonar.setRange(7);
+                            mainWindow.webContents.send("setRange", 7);
                         }
                     }, {
                         label: "8m",
                         type: "radio",
+                        id: "range.8",
                         click: () => {
                             sonar.setRange(8);
+                            mainWindow.webContents.send("setRange", 8);
                         }
                     }, {
                         label: "9m",
                         type: "radio",
+                        id: "range.9",
                         click: () => {
                             sonar.setRange(9);
+                            mainWindow.webContents.send("setRange", 9);
                         }
                     }, {
                         label: "10m",
                         type: "radio",
+                        id: "range.10",
                         click: () => {
                             sonar.setRange(10);
+                            mainWindow.webContents.send("setRange", 10);
                         }
                     }, {
                         label: "15m",
                         type: "radio",
+                        id: "range.15",
                         click: () => {
                             sonar.setRange(15);
+                            mainWindow.webContents.send("setRange", 15);
                         }
                     }, {
                         label: "20m",
                         type: "radio",
+                        id: "range.20",
                         click: () => {
                             sonar.setRange(20);
+                            mainWindow.webContents.send("setRange", 20);
                         }
                     }
                 ]
@@ -246,20 +274,26 @@ let template = [
                     {
                         label: "自动",
                         type: "radio",
+                        id: "freq.0",
                         click: () => {
                             sonar.setFreq(0);
+                            mainWindow.webContents.send("setFreq", 0);
                         }
                     }, {
                         label: "低频",
                         type: "radio",
+                        id: "freq.1",
                         click: () => {
                             sonar.setFreq(1);
+                            mainWindow.webContents.send("setFreq", 1);
                         }
                     }, {
                         label: "高频",
                         type: "radio",
+                        id: "freq.2",
                         click: () => {
                             sonar.setFreq(2);
+                            mainWindow.webContents.send("setFreq", 2);
                         }
                     }
                 ]
@@ -269,62 +303,82 @@ let template = [
                     {
                         label: "10%",
                         type: "radio",
+                        id: "gain.10",
                         click: () => {
                             sonar.setGain(4);
+                            mainWindow.webContents.send("setGain", 10);
                         }
                     }, {
                         label: "20%",
                         type: "radio",
+                        id: "gain.20",
                         click: () => {
                             sonar.setGain(8);
+                            mainWindow.webContents.send("setGain", 20);
                         }
                     }, {
                         label: "30%",
                         type: "radio",
+                        id: "gain.30",
                         click: () => {
                             sonar.setGain(12);
+                            mainWindow.webContents.send("setGain", 30);
                         }
                     }, {
                         label: "40%",
                         type: "radio",
+                        id: "gain.40",
                         click: () => {
                             sonar.setGain(16);
+                            mainWindow.webContents.send("setGain", 40);
                         }
                     }, {
                         label: "50%",
                         type: "radio",
+                        id: "gain.50",
                         click: () => {
                             sonar.setGain(20);
+                            mainWindow.webContents.send("setGain", 50);
                         }
                     }, {
                         label: "60%",
                         type: "radio",
+                        id: "gain.60",
                         click: () => {
                             sonar.setGain(24);
+                            mainWindow.webContents.send("setGain", 60);
                         }
                     }, {
                         label: "70%",
                         type: "radio",
+                        id: "gain.70",
                         click: () => {
                             sonar.setGain(28);
+                            mainWindow.webContents.send("setGain", 70);
                         }
                     }, {
                         label: "80%",
                         type: "radio",
+                        id: "gain.80",
                         click: () => {
                             sonar.setGain(32);
+                            mainWindow.webContents.send("setGain", 80);
                         }
                     }, {
                         label: "90%",
                         type: "radio",
+                        id: "gain.90",
                         click: () => {
                             sonar.setGain(36);
+                            mainWindow.webContents.send("setGain", 90);
                         }
                     }, {
                         label: "100%",
                         type: "radio",
+                        id: "gain.100",
                         click: () => {
                             sonar.setGain(40);
+                            mainWindow.webContents.send("setGain", 100);
                         }
                     }
                 ]
@@ -363,6 +417,7 @@ let template = [
                         type: "radio",
                         checked: true,
                         accelerator: "CmdOrCtrl+Alt+P",
+                        id: "mode.0",
                         click: () => {
                             mainWindow.webContents.send("mode", 0);
                         }
@@ -370,6 +425,7 @@ let template = [
                         label: "BSCAN (B扫)",
                         type: "radio",
                         accelerator: "CmdOrCtrl+Alt+B",
+                        id: "mode.1",
                         click: () => {
                             mainWindow.webContents.send("mode", 1);
                         }
@@ -377,6 +433,7 @@ let template = [
                         label: "Sector (扇扫)",
                         accelerator: "CmdOrCtrl+Alt+S",
                         type: "radio",
+                        id: "mode.2",
                         click: () => {
                             mainWindow.webContents.send("mode", 2);
                         }
@@ -536,18 +593,21 @@ let template = [
                     {
                         label: "图像叠加",
                         type: "radio",
+                        id: "profile.0",
                         click: () => {
                             mainWindow.webContents.send("setProfileMode", 0);
                         }
                     }, {
                         label: "仅剖面",
                         type: "radio",
+                        id: "profile.1",
                         click: () => {
                             mainWindow.webContents.send("setProfileMode", 1);
                         }
                     }, {
                         label: "仅图像",
                         type: "radio",
+                        id: "profile.2",
                         click: () => {
                             mainWindow.webContents.send("setProfileMode", 2);
                         }
@@ -556,7 +616,12 @@ let template = [
             }, {
                 label: "发射延时"
             }, {
-                label: "不显示盲区图像"
+                label: "不显示盲区图像",
+                type: "checkbox",
+                checked: true,
+                click: () => {
+                    mainWindow.webContents.send("toggleMinrange");
+                }
             }
         ]
     },
@@ -641,6 +706,30 @@ app.on('ready', function() {
     ipcMain.on("ready", function(ev) {
         ev.sender.send("loadConfig", conf);
     })
+});
+
+ipcMain.on("setRange", (ev, r) => {
+    sonar.ucRange = r;
+    menu.getMenuItemById("range." + Math.floor(r)).checked = true;
+});
+
+ipcMain.on("setGain", (ev, r) => {
+    sonar.ucStartGain = r * 0.4;
+    menu.getMenuItemById("gain." + Math.floor(r)).checked = true;
+});
+
+ipcMain.on("setFreq", (ev, f) => {
+    sonar.ucFreq = f;
+    menu.getMenuItemById("freq." + Math.floor(f)).checked = true;
+});
+
+ipcMain.on("setProfile", (ev, p) => {
+    menu.getMenuItemById("profile." + Math.floor(p)).checked = true;
+
+});
+
+ipcMain.on("setMode", (ev, m) => {
+    menu.getMenuItemById("mode." + Math.floor(m)).checked = true;
 });
 
 app.on('window-all-closed', function () {

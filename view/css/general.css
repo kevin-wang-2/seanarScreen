@@ -1,8 +1,129 @@
+* {
+    user-select: none;
+}
+
 html {
     overflow: hidden;
+}
+
+body {
+    display: flex;
 }
 
 canvas {
     border: 1px solid;
     background-color: #000084;
+}
+
+.panel {
+    margin-left: 2rem;
+}
+
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.knob {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #dddddd;
+    width: 5rem;
+    height: 5rem;
+    box-shadow: 0 0 .3rem rgba(0, 0, 0, .1);
+}
+
+.list {
+    position: absolute;
+    width: 5rem;
+    box-shadow: 0 0 .3rem rgba(0, 0, 0, .1);
+    align-content: center;
+    vertical-align: center;
+}
+
+.option {
+    display: flex;
+    justify-content: center;
+    padding-top: .15rem;
+    padding-bottom: .15rem;
+    border-bottom: #888888 1px solid;
+}
+
+.option:last-child {
+    border-bottom: none;
+}
+
+.option:hover {
+    background-color: #8bb3d6;
+}
+
+.option.active {
+    background-color: #000084;
+    color: white;
+}
+
+.knob--pointer {
+    height: 1px;
+    width: 50%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    background-color: black;
+    transform-origin: 100% 0;
+}
+
+.knob--gear {
+    height: 1px;
+    width: 10%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    background-color: #888;
+    transform-origin: 500% 0;
+}
+
+.knob--label {
+    position: absolute;
+    top:100%;
+    left:50%;
+    transform:translate(-50%,-10%);
+}
+
+.knob-container {
+    margin-top: 1rem;
+}
+
+.control--item {
+    width: 5rem;
+    display: inline-block;
+    margin-right: 5rem;
+}
+
+.control--item-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+}
+
+.disable > div {
+    background-color: #888888 !important;
+}
+
+.disable > div > .knob--pointer {
+    background-color: #888888 !important;
+}
+
+.disable > div > .knob--label {
+    display: none;
+}
+
+.row {
+    margin-top: 8rem;
+}
+
+.row:nth-child(2){
+    margin-top: 0;
 }

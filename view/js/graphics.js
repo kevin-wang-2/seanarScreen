@@ -162,8 +162,19 @@ class ColorMap {
             w = h = Math.floor(Math.sqrt(grayScale.length));
         }
 
-        let imageData = new ImageData(Array.toUint8ClampedArray(this.toPseudoColor(grayScale)), w, h);
-        context.putImageData(imageData);
+        let pixelArray = new Uint8ClampedArray(w * h * 4);
+        grayScale.forEach((item, cnt) => {
+            if(cnt <= w * h) {
+                let newColor = this.colorMap[item];
+                pixelArray[cnt * 4] = newColor[0];
+                pixelArray[cnt * 4 + 1] = newColor[1];
+                pixelArray[cnt * 4 + 2] = newColor[2];
+                pixelArray[cnt * 4 + 3] = 255;
+            }
+        });
+
+        let imageData = new ImageData(pixelArray, w, h);
+        context.putImageData(imageData, x, y);
     }
 
     /**
@@ -189,7 +200,7 @@ class ColorMap {
         }
 
         // 由于要使用蒙版, 重写转换过程, 为了性能直接写入Uint8ClampedArray
-        let pixelArray = new Uint8ClampedArray(w * w * 4);
+        let pixelArray = new Uint8ClampedArray(w * h * 4);
         grayScale.forEach((item, cnt) => {
             if(cnt <= w * w) {
                 let newColor = this.colorMap[item];
