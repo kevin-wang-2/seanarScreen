@@ -732,6 +732,22 @@ ipcMain.on("setMode", (ev, m) => {
     menu.getMenuItemById("mode." + Math.floor(m)).checked = true;
 });
 
+ipcMain.on("setGrid", (ev, g) => {
+    if(g) {
+        menu.getMenuItemById("gridOn").checked = true;
+    } else {
+        menu.getMenuItemById("gridOff").checked = true;
+    }
+});
+
+ipcMain.on("setFlag", (ev, g) => {
+    if(g) {
+        menu.getMenuItemById("flagOn").checked = true;
+    } else {
+        menu.getMenuItemById("flagOff").checked = true;
+    }
+});
+
 app.on('window-all-closed', function () {
     sonar.terminate();
     app.quit();

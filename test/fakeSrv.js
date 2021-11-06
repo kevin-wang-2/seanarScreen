@@ -9,7 +9,7 @@ let interval;
 file.open(__dirname + "/test.P62", "r");
 
 srv.on("message", (data, rinfo) => {
-    console.log(data);
+    //console.log(data);
     let port = rinfo.port;
     let address = rinfo.address;
     if(!interval) {
@@ -33,7 +33,8 @@ srv.on("message", (data, rinfo) => {
             sendBuf.push(sendBuf.writeUInt8, 0xfd);
 
             srv.send(sendBuf, 0, 8, port, address);
-            srv.send(new Buffer(data.data), 0, data.length + 2, port, address)
+            srv.send(new Buffer(data.data), 0, data.length + 2, port, address);
+            console.log(data.length);
         }, 20);
     }
 });

@@ -28,11 +28,21 @@ module.exports = (document) => {
         ipcRenderer.on("loadConfig", function(ev, cfg) {
             range.val(parseInt(cfg["SONAR PARAM"]["RANGE"]));
             gain.val(parseInt(cfg["SONAR PARAM"]["GAIN"]));
-            if(parseInt(cfg["SONAR PARAM"]["DISPLAY_MODE"] === 1)) curSonar = new BScan($("canvas")[0], maxRadius);
-            else curSonar = new PPI($("canvas")[0], maxRadius);
+            let baseCanvas = $("canvas")[0];
+            switch(parseInt(cfg["SONAR PARAM"]["DISPLAY_MODE"])) {
+                case 1:
+                    curSonar = new BScan(baseCanvas, maxRadius);
+                    mode.val(1);
+                    break;
+                default:
+                    curSonar = new PPI(baseCanvas, maxRadius);
+                    mode.val(0);
+            }
             sonarEvents.emit("load");
             curSonar.loadColorMap(internalColorTable[parseInt(cfg["SONAR PARAM"]["COLOR_TABLE"])]);
             curSonar.grid = cfg["SONAR PARAM"]["GRID"] === "1";
+            grid.val(curSonar.grid ? 1 : 0);
+            $(document.body).css({height: window.innerHeight});
         });
 
         function changeSonarMode(m) {
@@ -114,6 +124,7 @@ module.exports = (document) => {
             })
         });
         ipcRenderer.on("grid", function(ev, arg) {
+            grid.val(arg ? 1 : 0);
             if(curSonar)
                 curSonar.grid = arg;
             sonarEvents.on("load", () => {
@@ -122,8 +133,10 @@ module.exports = (document) => {
         });
         ipcRenderer.on("toggleGrid", function() {
             curSonar.grid = !curSonar.grid;
+            grid.val(curSonar.grid? 1 : 0);
         });
         ipcRenderer.on("flag", function(ev, arg) {
+            flag.val(arg ? 1 : 0);
             if(curSonar)
                 curSonar.flag = arg;
             sonarEvents.on("load", () => {
@@ -132,6 +145,7 @@ module.exports = (document) => {
         });
         ipcRenderer.on("toggleFlag", function() {
             curSonar.flag = !curSonar.flag;
+            flag.val(curSonar.flag? 1 : 0);
         });
         ipcRenderer.on("setProfileMode", function(ev, arg) {
             if(curSonar)
@@ -206,6 +220,18 @@ module.exports = (document) => {
         mode.events.on("change", () => {
             changeSonarMode(mode.value);
             ipcRenderer.send("setMode", mode.value);
+        });
+
+        let grid = new ListOption($("[name='grid']"));
+        grid.events.on("change", () => {
+            curSonar.grid = grid.value;
+            ipcRenderer.send("setGrid", grid.value);
+        });
+
+        let flag = new ListOption($("[name='flag']"));
+        flag.events.on("change", () => {
+            curSonar.flag = flag.value;
+            ipcRenderer.send("setFlag", flag.value);
         });
     });
 };

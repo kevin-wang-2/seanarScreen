@@ -8,6 +8,7 @@ html {
 
 body {
     display: flex;
+    overflow: hidden;
 }
 
 canvas {
@@ -121,9 +122,20 @@ canvas {
 }
 
 .row {
-    margin-top: 8rem;
+    line-height: 10rem;
+}
+
+.row > div {
+    line-height: 1.5rem;
 }
 
 .row:nth-child(2){
     margin-top: 0;
+}
+
+.playList {
+    line-height: 1.5rem;
+    display: inline-block;
+    list-style: none;
+    font-family: Open Sans, PingFang SC, Seravek, Segoe UI, Verdana, Hiragino Sans GB, Lantinghei SC, Microsoft Yahei, WenQuanYi Micro Hei, sans;
 }

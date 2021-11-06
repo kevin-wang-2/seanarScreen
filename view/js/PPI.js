@@ -340,13 +340,13 @@ class PPI {
         this.connection = true;
 
         if(this.clearMinRange)
-            data.data = this.processMinRange(res.data, res.length);
-        data.data = this.processProfile(res.data, res.length);
+            data.data = this.processMinRange(data.data, data.length);
+        data.data = this.processProfile(data.data, data.length);
         if(this.AScanLine)
-            if(Math.abs(3 * Math.PI / 2 - res.header.m_nAngle * 0.45 * Math.PI / 180 - this.AScanAngle) <= Math.PI / 360) {
-                this.AScanBuf = res.data.slice(0, res.length);
-                let profile = res.data[res.length];
-                profile += res.data[res.length + 1] << 7;
+            if(Math.abs(3 * Math.PI / 2 - data.header.m_nAngle * 0.45 * Math.PI / 180 - this.AScanAngle) <= Math.PI / 360) {
+                this.AScanBuf = data.data.slice(0, data.length);
+                let profile = data.data[data.length];
+                profile += data.data[data.length + 1] << 7;
                 this.AScanProfile = profile * 2.5e-6 * this.soundSpeed / 2.0;
             }
 

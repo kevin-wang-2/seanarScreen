@@ -88,7 +88,7 @@ class BScan {
     drawFrame() {
         let angle = this.scanAngle;
         if(!this.headDown) angle = -angle;
-        angle = angle < 180 ? (angle + 180) : (angle - 180)
+        angle = angle < 180 ? (angle + 180) : (angle - 180);
         let ctx = this.context.ctx;
         /**
          * 绘制线类元素, 包括外圈, 扫描线, 栅格
@@ -108,8 +108,8 @@ class BScan {
          */
         if(this.flag) {
             ctx.beginPath();
-            let startX = this.scanAngle / 360 * this.scanWidth,
-                startY = this.center[1] + this.scanWidth * 2;
+            let startX = (angle) / 360 * this.scanWidth,
+                startY = this.center[1] + this.scanRadius / 2;
             ctx.moveTo(startX, startY);
             ctx.lineTo(startX - 5, startY + 10 * Math.sin(Math.PI / 3));
             ctx.lineTo(startX + 5, startY + 10 * Math.sin(Math.PI / 3));
@@ -117,7 +117,7 @@ class BScan {
             ctx.fillStyle = "black";
             ctx.fill();
             ctx.beginPath();
-            startY = this.center[1] - this.scanWidth * 2;
+            startY = this.center[1] - this.scanRadius / 2;
             ctx.moveTo(startX, startY);
             ctx.lineTo(startX - 5, startY - 10 * Math.sin(Math.PI / 3));
             ctx.lineTo(startX + 5, startY - 10 * Math.sin(Math.PI / 3));

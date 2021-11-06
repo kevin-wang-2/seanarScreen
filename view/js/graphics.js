@@ -284,7 +284,7 @@ class Context {
     constructor(canvas, graphSize = 500) {
         this.canvas = canvas;
         this.graphSize = graphSize;
-        this.windowSize = (Math.min(window.innerHeight, window.innerWidth) > graphSize ? Math.min(window.innerHeight, window.innerWidth): graphSize) - canvas.clientTop - 18;
+        this.windowSize = (Math.min(window.innerHeight, window.innerWidth) > graphSize ? Math.min(window.innerHeight, window.innerWidth): graphSize) - 18;
         this.canvas.width = this.canvas.height = this.windowSize;
         this.isContext = true;
         this.ctx = this.canvas.getContext("2d");

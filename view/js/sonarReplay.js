@@ -1,15 +1,15 @@
 let fs = require("fs");
 
 /**
- * SonarFile ÎÄ¼þ¸ñÊ½
+ * SonarFile ï¿½Ä¼ï¿½ï¿½ï¿½Ê½
  * typedef struct    // Model HFIS Switch Data Command To Sonar Head
  {
 	unsigned char ucFlag;			// 0xFE
 	unsigned char ucSize;			// Size of RECORDFORMAT
 	unsigned char ucVersion;		// Version of RECORDFORMAT
-	unsigned char ucParam; 			// Bit3:0 - ²½¾à£¬1 ~ 15, Bit6:Sector
+	unsigned char ucParam; 			// Bit3:0 - ï¿½ï¿½ï¿½à£¬1 ~ 15, Bit6:Sector
 
-	DWORD tm;						// Year:6 Day:5 Hour:5 Mon:4 Min:6 Sec:6,´ËÑ­Ðò±ÜÃâ³öÏÖ0xFE
+	DWORD tm;						// Year:6 Day:5 Hour:5 Mon:4 Min:6 Sec:6,ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0xFE
 
 	unsigned char ucAngleLo;		//
 	unsigned char ucAngleHi;		// ((ucAngleHi&0x7f)<<7)+(ucAngleLo&0x7f)
@@ -29,19 +29,19 @@ let fs = require("fs");
  */
 
 class SonarFile {
-    constructoe() {
+    constructor() {
         this.openForRead = false;
         this.openForWrite = false;
     }
 
     /**
-     * ´ò¿ªÒ»¸öÉùÄÅÎÄ¼þ
-     * @param path: ÉùÄÅÎÄ¼þµÄÂ·¾¶
+     * ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+     * @param path: ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Â·ï¿½ï¿½
      * @param flags: Ä£Ê½
      */
     open(path, flags) {
         this.fd = fs.openSync(path, flags);
-        if (!this.fd) throw Error("ÎÄ¼þ´ò¿ªÊ§°Ü");
+        if (!this.fd) throw Error("ï¿½Ä¼ï¿½ï¿½ï¿½Ê§ï¿½ï¿½");
         if (flags === "r")
             this.openForRead = true;
         else
@@ -49,10 +49,10 @@ class SonarFile {
     }
 
     /**
-     * ¶ÁÈ¡Ò»Ö¡¾­Ð£ÑéµÄÊý¾Ý
+     * ï¿½ï¿½È¡Ò»Ö¡ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     read() {
-        // ÕâÀïÊ¹ÓÃBufferÀ´½ÓÊÕÊý¾Ý, Ò»¹²ÊÇ18×Ö½ÚÊý¾Ý
+        // ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Bufferï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, Ò»ï¿½ï¿½ï¿½ï¿½18ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½
         let headBuf = Buffer.alloc(20),
             success = fs.readSync(this.fd, headBuf, 0, 20, null);
 
@@ -102,7 +102,7 @@ class SonarFile {
                 data: buf.toJSON().data,
                 length: len
             }
-        } else { // ·Ç·¨ÎÄ¼þ
+        } else { // ï¿½Ç·ï¿½ï¿½Ä¼ï¿½
             throw Error("Head data invalid")
         }
     }
